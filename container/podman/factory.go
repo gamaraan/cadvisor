@@ -17,6 +17,7 @@ package podman
 import (
 	"flag"
 	"fmt"
+	"path"
 	"sync"
 	"time"
 
@@ -32,6 +33,7 @@ import (
 const (
 	rootDirRetries     = 5
 	rootDirRetryPeriod = time.Second
+	containerBaseName  = "container"
 )
 
 var (
@@ -82,6 +84,10 @@ type podmanFactory struct {
 }
 
 func (f *podmanFactory) CanHandleAndAccept(name string) (handle bool, accept bool, err error) {
+	// Rootless
+	if path.Base(name) == containerBaseName {
+		name, _ = path.Split(name)
+	}
 	if !dockerutil.IsContainerName(name) {
 		return false, false, nil
 	}

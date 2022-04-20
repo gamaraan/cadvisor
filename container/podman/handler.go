@@ -103,6 +103,11 @@ func newPodmanContainerHandler(
 		storageDir = path.Join(rootFs, storageDir)
 	}
 
+	rootless := path.Base(name) == containerBaseName
+	if rootless {
+		name, _ = path.Split(name)
+	}
+
 	id := dockerutil.ContainerNameToId(name)
 
 	// We assume that if Inspect fails then the container is not known to Podman.
@@ -111,29 +116,9 @@ func newPodmanContainerHandler(
 		return nil, err
 	}
 
-	rwLayerID, err := getRwLayerID(storageDir, id)
+	rootfsStorageDir, otherStorageDir, zfsParent, zfsFilesystem, err := getStorageDir(ctnr)
 	if err != nil {
-		return nil, err
-	}
-
-	// Add the Containers dir where the log files are stored.
-	otherStorageDir := path.Join(storageDir, pathToContainersDir, id)
-
-	// Determine the rootfs storage dir OR the pool name to determine the device.
-	// For devicemapper, we only need the thin pool name, and that is passed in to this call
-	var (
-		rootfsStorageDir string
-		zfsParent        string
-		zfsFilesystem    string
-	)
-	switch storageDriver {
-	case docker.OverlayStorageDriver:
-		rootfsStorageDir = path.Join(storageDir, string(storageDriver), rwLayerID, "diff")
-	case docker.ZfsStorageDriver:
-		rootfsStorageDir, zfsParent, zfsFilesystem, err = docker.DetermineDeviceStorage(storageDriver, storageDir, rwLayerID)
-		if err != nil {
-			return nil, fmt.Errorf("unable to determine device storage: %v", err)
-		}
+		return nil, fmt.Errorf("unable to determine storage: %w", err)
 	}
 
 	handler := &podmanContainerHandler{
