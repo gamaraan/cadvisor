@@ -60,9 +60,10 @@ var eventStorageAgeLimit = flag.String("event_storage_age_limit", "default=24h",
 var eventStorageEventLimit = flag.String("event_storage_event_limit", "default=100000", "Max number of events to store (per type). Value is a comma separated list of key values, where the keys are event types (e.g.: creation, oom) or \"default\" and the value is an integer. Default is applied to all non-specified event types")
 var applicationMetricsCountLimit = flag.Int("application_metrics_count_limit", 100, "Max number of application metrics to store (per container)")
 
-// The namespace under which Docker aliases are unique.
+// The namespace under which aliases are unique.
 const (
 	DockerNamespace = "docker"
+	PodmanNamespace = "podman"
 )
 
 var HousekeepingConfigFlags = HouskeepingConfig{
@@ -729,19 +730,23 @@ func (m *manager) getRequestedContainers(containerName string, options v2.Reques
 				return containersMap, fmt.Errorf("unknown container: %q", containerName)
 			}
 		}
-	case v2.TypeDocker:
+	case v2.TypeDocker, v2.TypePodman:
+		namespace := map[string]string{
+			v2.TypeDocker: DockerNamespace,
+			v2.TypePodman: PodmanNamespace,
+		}[options.IdType]
 		if !options.Recursive {
 			containerName = strings.TrimPrefix(containerName, "/")
-			cont, err := m.getNamespacedContainer(containerName, DockerNamespace)
+			cont, err := m.getNamespacedContainer(containerName, namespace)
 			if err != nil {
 				return containersMap, err
 			}
 			containersMap[cont.info.Name] = cont
 		} else {
 			if containerName != "/" {
-				return containersMap, fmt.Errorf("invalid request for docker container %q with subcontainers", containerName)
+				return containersMap, fmt.Errorf("invalid request for %s container %q with subcontainers", options.IdType, containerName)
 			}
-			containersMap = m.getAllNamespacedContainers(DockerNamespace)
+			containersMap = m.getAllNamespacedContainers(namespace)
 		}
 	default:
 		return containersMap, fmt.Errorf("invalid request type %q", options.IdType)
