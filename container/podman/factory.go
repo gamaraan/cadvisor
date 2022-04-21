@@ -37,31 +37,27 @@ const (
 )
 
 var (
-	rootDirFlag  = flag.String("podman_root", "/var/lib/containers", "podman diretory")
 	endpointFlag = flag.String("podman", "unix:///var/run/podman/podman.sock", "podman endpoint")
 )
 
 var (
-	podmanRootDir     string
-	podmanRootDirOnce sync.Once
+	rootDir     string
+	rootDirOnce sync.Once
 )
 
 func RootDir() string {
-	podmanRootDirOnce.Do(func() {
+	rootDirOnce.Do(func() {
 		for i := 0; i < rootDirRetries; i++ {
 			status, err := Status()
-			if err != nil && status.RootDir != "" {
-				podmanRootDir = status.RootDir
+			if err == nil && status.RootDir != "" {
+				rootDir = status.RootDir
 				break
 			} else {
 				time.Sleep(rootDirRetryPeriod)
 			}
 		}
-		if podmanRootDir == "" {
-			podmanRootDir = *rootDirFlag
-		}
 	})
-	return podmanRootDir
+	return rootDir
 }
 
 type podmanFactory struct {

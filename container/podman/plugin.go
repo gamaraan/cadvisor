@@ -16,8 +16,6 @@ package podman
 
 import (
 	"fmt"
-	"path/filepath"
-
 	"k8s.io/klog/v2"
 
 	"github.com/google/cadvisor/container"
@@ -94,7 +92,7 @@ func Register(factory info.MachineInfoFactory, fsInfo fs.FsInfo, metrics contain
 	f := &podmanFactory{
 		machineInfoFactory: factory,
 		storageDriver:      docker.StorageDriver(validatedInfo.Driver),
-		storageDir:         filepath.Join(RootDir(), storageDir),
+		storageDir:         RootDir(),
 		cgroupSubsystem:    cgroupSubsystem,
 		fsInfo:             fsInfo,
 		metrics:            metrics,
