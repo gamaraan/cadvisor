@@ -17,6 +17,7 @@ package podman
 import (
 	"fmt"
 	"path"
+	"path/filepath"
 	"strings"
 	"time"
 
@@ -116,10 +117,17 @@ func newPodmanContainerHandler(
 		return nil, err
 	}
 
-	rootfsStorageDir, otherStorageDir, zfsParent, zfsFilesystem, err := getStorageDir(ctnr)
+	rwLayerID, err := getRwLayerID(storageDir, id)
 	if err != nil {
-		return nil, fmt.Errorf("unable to determine storage: %w", err)
+		return nil, err
 	}
+
+	rootfsStorageDir, zfsParent, zfsFilesystem, err := determineDeviceStorage(storageDriver, storageDir, rwLayerID)
+	if err != nil {
+		return nil, err
+	}
+
+	otherStorageDir := filepath.Join(storageDir, pathToContainersDir, id)
 
 	handler := &podmanContainerHandler{
 		machineInfoFactory: machineInfoFactory,
@@ -194,6 +202,18 @@ func newPodmanContainerHandler(
 	}
 
 	return handler, nil
+}
+
+func determineDeviceStorage(storageDriver docker.StorageDriver, storageDir string, rwLayerID string) (
+	rootfsStorageDir string, zfsFilesystem string, zfsParent string, err error) {
+	switch storageDriver {
+	// Podman aliased the driver names together.
+	case docker.OverlayStorageDriver, docker.Overlay2StorageDriver:
+		rootfsStorageDir = path.Join(storageDir, "overlay", rwLayerID, "diff")
+		return
+	default:
+		return docker.DetermineDeviceStorage(storageDriver, storageDir, rwLayerID)
+	}
 }
 
 func (p podmanContainerHandler) ContainerReference() (info.ContainerReference, error) {

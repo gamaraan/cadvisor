@@ -15,40 +15,39 @@
 package podman
 
 import (
+	"encoding/json"
 	"fmt"
-	"strings"
-
-	"github.com/docker/docker/api/types"
-
-	"github.com/google/cadvisor/container/docker"
+	"io/ioutil"
+	"path/filepath"
 )
 
-func extractStorageDirFromOverlay(overlay string) (string, error) {
-	spplited := strings.Split(overlay, "overlay-containers")
-	if len(spplited) == 1 {
-		return "", fmt.Errorf("couldn't determine storage dir from overlay: %v", overlay)
-	}
-	return spplited[0], nil
+const (
+	containersJSONFilename = "containers.json"
+	overlayContainers      = "overlay-containers"
+)
+
+type containersJSON struct {
+	ID    string `json:"id"`
+	Layer string `json:"layer"`
+	// rest in unnecessary
 }
 
-func getStorageDir(ctnr types.ContainerJSON) (rootfsStorageDir, otherStorageDir, zfsParent, zfsFilesystem string, err error) {
-	switch docker.StorageDriver(ctnr.GraphDriver.Name) {
-	case docker.OverlayStorageDriver:
-		if v, ok := ctnr.GraphDriver.Data["UpperDir"]; !ok {
-			rootfsStorageDir = v
-			// Extract directory from e.g. "~/.local.share/containers/storage/overlay-containers/7a6ae72926f4b4f6b2e238c3d0ad0308d40a87e933ea9fc8ffd1adb4bcf69d8a/diff"
-			otherStorageDir, err = extractStorageDirFromOverlay(v)
-		}
-	case docker.ZfsStorageDriver:
-		if v, ok := ctnr.GraphDriver.Data["Mountpoint"]; !ok {
-			zfsParent = v
-		}
-		if v, ok := ctnr.GraphDriver.Data["Dataset"]; !ok {
-			zfsFilesystem = v
-		}
-	default:
-		err = fmt.Errorf("%q support not implemented", ctnr.GraphDriver.Name)
+func getRwLayerID(storageDir string, containerID string) (string, error) {
+	data, err := ioutil.ReadFile(filepath.Join(storageDir, overlayContainers, containersJSONFilename))
+	if err != nil {
+		return "", err
+	}
+	var containers []containersJSON
+	err = json.Unmarshal(data, &containers)
+	if err != nil {
+		return "", err
 	}
 
-	return rootfsStorageDir, otherStorageDir, zfsParent, zfsFilesystem, err
+	for _, c := range containers {
+		if c.ID == containerID {
+			return c.Layer, nil
+		}
+	}
+
+	return "", fmt.Errorf("unable to determine %v rw layer id", containerID)
 }

@@ -16,6 +16,7 @@ package podman
 
 import (
 	"fmt"
+
 	"k8s.io/klog/v2"
 
 	"github.com/google/cadvisor/container"
@@ -27,10 +28,6 @@ import (
 	info "github.com/google/cadvisor/info/v1"
 	"github.com/google/cadvisor/watcher"
 	"github.com/google/cadvisor/zfs"
-)
-
-const (
-	storageDir = "storage"
 )
 
 func NewPlugin() container.Plugin {
