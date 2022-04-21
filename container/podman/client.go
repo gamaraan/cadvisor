@@ -34,7 +34,7 @@ type Connection struct {
 }
 
 func client(ctx *context.Context) (*Connection, error) {
-	_url, err := url.Parse(*endpointFlag)
+	_url, err := url.Parse(Endpoint())
 	if err != nil {
 		return nil, err
 	}
