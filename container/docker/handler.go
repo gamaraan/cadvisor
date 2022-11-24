@@ -323,7 +323,7 @@ func (h *dockerContainerHandler) GetStats() (*info.ContainerStats, error) {
 	}
 
 	// Get filesystem stats.
-	err = GetFsStats(stats, h.machineInfoFactory, h.includedMetrics, h.storageDriver,
+	err = FsStats(stats, h.machineInfoFactory, h.includedMetrics, h.storageDriver,
 		h.fsHandler, h.fsInfo, h.poolName, h.rootfsStorageDir, h.zfsParent)
 	if err != nil {
 		return stats, err

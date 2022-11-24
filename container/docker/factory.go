@@ -309,7 +309,7 @@ func Register(factory info.MachineInfoFactory, fsInfo fs.FsInfo, includedMetrics
 		return fmt.Errorf("unable to communicate with docker daemon: %v", err)
 	}
 
-	dockerInfo, err := ValidateInfo(GetInfo, VersionString)
+	dockerInfo, err := ValidateInfo(Info, VersionString)
 	if err != nil {
 		return fmt.Errorf("failed to validate Docker info: %v", err)
 	}

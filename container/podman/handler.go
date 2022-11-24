@@ -254,7 +254,7 @@ func (p podmanContainerHandler) GetStats() (*info.ContainerStats, error) {
 		stats.Network = info.NetworkStats{}
 	}
 
-	err = docker.GetFsStats(stats, p.machineInfoFactory, p.metrics, p.storageDriver,
+	err = docker.FsStats(stats, p.machineInfoFactory, p.metrics, p.storageDriver,
 		p.fsHandler, p.fsInfo, p.thinPoolName, p.rootfsStorageDir, p.zfsParent)
 	if err != nil {
 		return stats, err

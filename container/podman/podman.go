@@ -93,12 +93,7 @@ func apiGetRequest(url string, item interface{}) error {
 		return err
 	}
 
-	err = ctx.Err()
-	if err != nil {
-		return err
-	}
-
-	return nil
+	return ctx.Err()
 }
 
 func Images() ([]v1.DockerImage, error) {
@@ -122,11 +117,7 @@ func Status() (v1.DockerStatus, error) {
 func GetInfo() (*dockertypes.Info, error) {
 	var info dockertypes.Info
 	err := apiGetRequest("http://d/v1.0.0/info", &info)
-	if err != nil {
-		return &info, err
-	}
-
-	return &info, nil
+	return &info, err
 }
 
 func VersionString() (string, error) {
@@ -142,9 +133,5 @@ func VersionString() (string, error) {
 func InspectContainer(id string) (dockertypes.ContainerJSON, error) {
 	var data dockertypes.ContainerJSON
 	err := apiGetRequest(fmt.Sprintf("http://d/v1.0.0/containers/%s/json", id), &data)
-	if err != nil {
-		return data, err
-	}
-
-	return data, nil
+	return data, err
 }

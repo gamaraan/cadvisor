@@ -277,7 +277,7 @@ type manager struct {
 }
 
 func (m *manager) PodmanContainer(containerName string, query *info.ContainerInfoRequest) (info.ContainerInfo, error) {
-	container, err := m.getNamespacedContainer(containerName, podman.Namespace)
+	container, err := m.namespacedContainer(containerName, podman.Namespace)
 	if err != nil {
 		return info.ContainerInfo{}, err
 	}
@@ -622,10 +622,10 @@ func (m *manager) getAllNamespacedContainers(ns string) map[string]*containerDat
 
 func (m *manager) AllDockerContainers(query *info.ContainerInfoRequest) (map[string]info.ContainerInfo, error) {
 	containers := m.getAllNamespacedContainers(DockerNamespace)
-	return m.getContainersInfo(containers, query)
+	return m.containersInfo(containers, query)
 }
 
-func (m *manager) getNamespacedContainer(containerName string, ns string) (*containerData, error) {
+func (m *manager) namespacedContainer(containerName string, ns string) (*containerData, error) {
 	m.containersLock.RLock()
 	defer m.containersLock.RUnlock()
 
@@ -656,7 +656,7 @@ func (m *manager) getNamespacedContainer(containerName string, ns string) (*cont
 }
 
 func (m *manager) DockerContainer(containerName string, query *info.ContainerInfoRequest) (info.ContainerInfo, error) {
-	container, err := m.getNamespacedContainer(containerName, DockerNamespace)
+	container, err := m.namespacedContainer(containerName, DockerNamespace)
 	if err != nil {
 		return info.ContainerInfo{}, err
 	}
@@ -735,7 +735,7 @@ func (m *manager) getRequestedContainers(containerName string, options v2.Reques
 		}[options.IdType]
 		if !options.Recursive {
 			containerName = strings.TrimPrefix(containerName, "/")
-			cont, err := m.getNamespacedContainer(containerName, namespace)
+			cont, err := m.namespacedContainer(containerName, namespace)
 			if err != nil {
 				return containersMap, err
 			}
@@ -1383,7 +1383,7 @@ func (m *manager) getFsInfoByDeviceName(deviceName string) (v2.FsInfo, error) {
 	return v2.FsInfo{}, fmt.Errorf("cannot find filesystem info for device %q", deviceName)
 }
 
-func (m *manager) getContainersInfo(containers map[string]*containerData, query *info.ContainerInfoRequest) (map[string]info.ContainerInfo, error) {
+func (m *manager) containersInfo(containers map[string]*containerData, query *info.ContainerInfoRequest) (map[string]info.ContainerInfo, error) {
 	output := make(map[string]info.ContainerInfo, len(containers))
 	for name, cont := range containers {
 		inf, err := m.containerDataToContainerInfo(cont, query)
@@ -1402,7 +1402,7 @@ func (m *manager) getContainersInfo(containers map[string]*containerData, query 
 
 func (m *manager) AllPodmanContainers(query *info.ContainerInfoRequest) (map[string]info.ContainerInfo, error) {
 	containers := m.getAllNamespacedContainers(podman.Namespace)
-	return m.getContainersInfo(containers, query)
+	return m.containersInfo(containers, query)
 }
 
 func getVersionInfo() (*info.VersionInfo, error) {

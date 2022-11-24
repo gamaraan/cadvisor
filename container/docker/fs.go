@@ -27,7 +27,7 @@ import (
 	"github.com/google/cadvisor/zfs"
 )
 
-func GetFsStats(
+func FsStats(
 	stats *info.ContainerStats,
 	machineInfoFactory info.MachineInfoFactory,
 	metrics container.MetricSet,

@@ -128,7 +128,7 @@ func ValidateInfo(GetInfo func() (*dockertypes.Info, error), ServerVersion func(
 	return info, nil
 }
 
-func GetInfo() (*dockertypes.Info, error) {
+func Info() (*dockertypes.Info, error) {
 	client, err := Client()
 	if err != nil {
 		return nil, fmt.Errorf("unable to communicate with docker daemon: %v", err)
