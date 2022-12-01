@@ -17,6 +17,7 @@ package podman
 import (
 	"fmt"
 
+	"github.com/opencontainers/runc/libcontainer/cgroups"
 	"k8s.io/klog/v2"
 
 	"github.com/google/cadvisor/container"
@@ -99,6 +100,10 @@ func Register(factory info.MachineInfoFactory, fsInfo fs.FsInfo, metrics contain
 	}
 
 	container.RegisterContainerHandlerFactory(f, []watcher.ContainerWatchSource{watcher.Raw})
+
+	if !cgroups.IsCgroup2UnifiedMode() {
+		klog.Warning("Podman rootless containers not working with cgroups v1!")
+	}
 
 	return nil, nil
 }

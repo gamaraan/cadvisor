@@ -19,11 +19,12 @@ import (
 	"fmt"
 	"io/ioutil"
 	"path/filepath"
+
+	"github.com/google/cadvisor/container/docker"
 )
 
 const (
 	containersJSONFilename = "containers.json"
-	overlayContainers      = "overlay-containers"
 )
 
 type containersJSON struct {
@@ -32,8 +33,8 @@ type containersJSON struct {
 	// rest in unnecessary
 }
 
-func getRwLayerID(storageDir string, containerID string) (string, error) {
-	data, err := ioutil.ReadFile(filepath.Join(storageDir, overlayContainers, containersJSONFilename))
+func rwLayerID(storageDriver docker.StorageDriver, storageDir string, containerID string) (string, error) {
+	data, err := ioutil.ReadFile(filepath.Join(storageDir, string(storageDriver)+"-containers", containersJSONFilename))
 	if err != nil {
 		return "", err
 	}

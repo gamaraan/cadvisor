@@ -35,10 +35,6 @@ import (
 	"github.com/google/cadvisor/zfs"
 )
 
-const (
-	pathToContainersDir = "overlay-containers"
-)
-
 type podmanContainerHandler struct {
 	// machineInfoFactory provides info.MachineInfo
 	machineInfoFactory info.MachineInfoFactory
@@ -117,7 +113,7 @@ func newPodmanContainerHandler(
 		return nil, err
 	}
 
-	rwLayerID, err := getRwLayerID(storageDir, id)
+	rwLayerID, err := rwLayerID(storageDriver, storageDir, id)
 	if err != nil {
 		return nil, err
 	}
@@ -127,7 +123,7 @@ func newPodmanContainerHandler(
 		return nil, err
 	}
 
-	otherStorageDir := filepath.Join(storageDir, pathToContainersDir, id)
+	otherStorageDir := filepath.Join(storageDir, string(storageDriver)+"-containers", id)
 
 	handler := &podmanContainerHandler{
 		machineInfoFactory: machineInfoFactory,
