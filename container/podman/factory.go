@@ -17,7 +17,6 @@ package podman
 import (
 	"flag"
 	"fmt"
-	"os"
 	"path"
 	"sync"
 	"time"
@@ -42,24 +41,9 @@ var (
 )
 
 var (
-	endpoint     string
-	endpointOnce sync.Once
-	rootDir      string
-	rootDirOnce  sync.Once
+	rootDir     string
+	rootDirOnce sync.Once
 )
-
-func Endpoint() string {
-	endpointOnce.Do(func() {
-		sockDir := os.Getenv("XDG_RUNTIME_DIR")
-		if sockDir != "" {
-			endpoint = "unix:" + sockDir + "/podman/podman.sock"
-		} else {
-			endpoint = *endpointFlag
-		}
-	})
-
-	return endpoint
-}
 
 func RootDir() string {
 	rootDirOnce.Do(func() {
