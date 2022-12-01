@@ -134,7 +134,7 @@ func newPodmanContainerHandler(
 		ipAddress:          ctnr.NetworkSettings.IPAddress,
 		envs:               make(map[string]string),
 		labels:             ctnr.Config.Labels,
-		image:              ctnr.Image,
+		image:              ctnr.Config.Image,
 		networkMode:        ctnr.HostConfig.NetworkMode,
 		fsHandler:          common.NewFsHandler(common.DefaultPeriod, rootfsStorageDir, otherStorageDir, fsInfo),
 		metrics:            metrics,
